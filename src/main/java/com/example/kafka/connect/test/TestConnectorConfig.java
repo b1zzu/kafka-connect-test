@@ -19,15 +19,38 @@ public class TestConnectorConfig extends AbstractConfig {
 
     public static final String START_DELAY_MS_CONFIG = "start.delay.ms";
     private static final String START_DELAY_MS_DOC =
-            "Milliseconds the task blocks inside start() before returning, simulating a connector "
-                    + "that takes time to come up (e.g. warming up a client, negotiating a connection).";
+            "Milliseconds the connector blocks inside start() before returning, simulating a "
+                    + "connector that takes time to come up (e.g. warming up a client, negotiating a "
+                    + "connection).";
     public static final long START_DELAY_MS_DEFAULT = 0L;
 
     public static final String START_FAIL_CONFIG = "start.fail";
     private static final String START_FAIL_DOC =
-            "If true, start() throws after start.delay.ms, simulating a connector that accepts the "
-                    + "config but its task fails to start.";
+            "If true, the connector's start() throws after start.delay.ms, simulating a connector "
+                    + "that itself fails to come up (reported as connector status FAILED, as opposed to "
+                    + "start.tasks.fail which only fails the tasks).";
     public static final boolean START_FAIL_DEFAULT = false;
+
+    public static final String START_TASKS_DELAY_MS_CONFIG = "start.tasks.delay.ms";
+    private static final String START_TASKS_DELAY_MS_DOC =
+            "Milliseconds each task blocks inside start() before returning, simulating a task that "
+                    + "takes time to come up (e.g. warming up a client, negotiating a connection).";
+    public static final long START_TASKS_DELAY_MS_DEFAULT = 0L;
+
+    public static final String START_TASKS_FAIL_CONFIG = "start.tasks.fail";
+    private static final String START_TASKS_FAIL_DOC =
+            "If true, each task's start() throws after start.tasks.delay.ms, simulating a connector "
+                    + "that accepts the config but whose tasks fail to start. Ignored when "
+                    + "start.tasks.fail.count is set (>= 0).";
+    public static final boolean START_TASKS_FAIL_DEFAULT = false;
+
+    public static final String START_TASKS_FAIL_COUNT_CONFIG = "start.tasks.fail.count";
+    private static final String START_TASKS_FAIL_COUNT_DOC =
+            "If >= 0, exactly this many of the tasks.max tasks (the first N, 0-indexed) fail at "
+                    + "start via start.tasks.fail, while the rest start normally - simulating a connector "
+                    + "where only some tasks fail to come up. Overrides start.tasks.fail when set. "
+                    + "Disabled (start.tasks.fail applies uniformly to all tasks) when negative.";
+    public static final int START_TASKS_FAIL_COUNT_DEFAULT = -1;
 
     public static final String FAIL_AFTER_MS_CONFIG = "fail.after.ms";
     private static final String FAIL_AFTER_MS_DOC =
@@ -53,6 +76,9 @@ public class TestConnectorConfig extends AbstractConfig {
     public static final ConfigDef CONFIG_DEF = new ConfigDef()
             .define(START_DELAY_MS_CONFIG, Type.LONG, START_DELAY_MS_DEFAULT, Importance.MEDIUM, START_DELAY_MS_DOC)
             .define(START_FAIL_CONFIG, Type.BOOLEAN, START_FAIL_DEFAULT, Importance.MEDIUM, START_FAIL_DOC)
+            .define(START_TASKS_DELAY_MS_CONFIG, Type.LONG, START_TASKS_DELAY_MS_DEFAULT, Importance.MEDIUM, START_TASKS_DELAY_MS_DOC)
+            .define(START_TASKS_FAIL_CONFIG, Type.BOOLEAN, START_TASKS_FAIL_DEFAULT, Importance.MEDIUM, START_TASKS_FAIL_DOC)
+            .define(START_TASKS_FAIL_COUNT_CONFIG, Type.INT, START_TASKS_FAIL_COUNT_DEFAULT, Importance.MEDIUM, START_TASKS_FAIL_COUNT_DOC)
             .define(FAIL_AFTER_MS_CONFIG, Type.LONG, FAIL_AFTER_MS_DEFAULT, Importance.MEDIUM, FAIL_AFTER_MS_DOC)
             .define(STOP_DELAY_MS_CONFIG, Type.LONG, STOP_DELAY_MS_DEFAULT, Importance.MEDIUM, STOP_DELAY_MS_DOC)
             .define(POLL_DELAY_MS_CONFIG, Type.LONG, POLL_DELAY_MS_DEFAULT, Importance.LOW, POLL_DELAY_MS_DOC);
@@ -67,6 +93,18 @@ public class TestConnectorConfig extends AbstractConfig {
 
     public boolean startFail() {
         return getBoolean(START_FAIL_CONFIG);
+    }
+
+    public long startTasksDelayMs() {
+        return getLong(START_TASKS_DELAY_MS_CONFIG);
+    }
+
+    public boolean startTasksFail() {
+        return getBoolean(START_TASKS_FAIL_CONFIG);
+    }
+
+    public int startTasksFailCount() {
+        return getInt(START_TASKS_FAIL_COUNT_CONFIG);
     }
 
     public long failAfterMs() {

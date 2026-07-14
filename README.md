@@ -26,10 +26,13 @@ real datastore or broker behaving flaky.
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `start.delay.ms` | long | `0` | How long the task blocks inside `start()` before returning. |
-| `start.fail` | boolean | `false` | If `true`, `start()` throws (after `start.delay.ms`), so the connector accepts the config but the task fails to come up. |
-| `fail.after.ms` | long | `-1` | If `>= 0`, the task starts successfully but fails itself this many ms later. Disabled when negative. |
-| `stop.delay.ms` | long | `0` | How long the task blocks inside `stop()` before returning. |
+| `start.delay.ms` | long | `0` | How long the **connector** blocks inside `start()` before returning. |
+| `start.fail` | boolean | `false` | If `true`, the **connector's** `start()` throws (after `start.delay.ms`), so the connector itself is reported `FAILED`. |
+| `start.tasks.delay.ms` | long | `0` | How long each **task** blocks inside `start()` before returning. |
+| `start.tasks.fail` | boolean | `false` | If `true`, each **task's** `start()` throws (after `start.tasks.delay.ms`), so the connector accepts the config but its tasks fail to come up. Ignored when `start.tasks.fail.count` is set. |
+| `start.tasks.fail.count` | int | `-1` | If `>= 0`, exactly this many of the `tasks.max` tasks (the first N) fail at start, while the rest run fine - overrides `start.tasks.fail`. Disabled when negative. |
+| `fail.after.ms` | long | `-1` | If `>= 0`, a task starts successfully but fails itself this many ms later. Disabled when negative. |
+| `stop.delay.ms` | long | `0` | How long each task blocks inside `stop()` before returning. |
 | `poll.delay.ms` | long | `1000` | How long each `poll()` call blocks before returning no records. Doesn't affect correctness, just loop friendliness. |
 
 The connector runs exactly `tasks.max` tasks, each with the same config (so each task delays/fails
@@ -65,7 +68,7 @@ Connect image's plugin path.
   "config": {
     "connector.class": "com.example.kafka.connect.test.TestConnector",
     "tasks.max": "1",
-    "start.delay.ms": "5000",
+    "start.tasks.delay.ms": "5000",
     "stop.delay.ms": "8000",
     "fail.after.ms": "30000"
   }
@@ -78,7 +81,7 @@ Connect image's plugin path.
 - 30s after each successful start, the task fails on its own, simulating a connector that looked
   healthy right after start but degraded afterwards.
 
-## Example: simulate a config update that can't start
+## Example: simulate a connector that fails to start
 
 ```json
 {
@@ -91,5 +94,38 @@ Connect image's plugin path.
 }
 ```
 
-The connector is created/updated successfully (the config is valid), but the task immediately goes
+The config is accepted (`PUT /connectors/.../config` succeeds), but the connector itself goes to
+`FAILED` - its tasks never even get created.
+
+## Example: simulate a config update whose tasks can't start
+
+```json
+{
+  "name": "test-connector",
+  "config": {
+    "connector.class": "com.example.kafka.connect.test.TestConnector",
+    "tasks.max": "1",
+    "start.tasks.fail": "true"
+  }
+}
+```
+
+The connector is created/updated successfully and reports `RUNNING`, but each task immediately goes
 to `FAILED`.
+
+## Example: simulate some tasks failing while others run fine
+
+```json
+{
+  "name": "test-connector",
+  "config": {
+    "connector.class": "com.example.kafka.connect.test.TestConnector",
+    "tasks.max": "3",
+    "start.tasks.fail.count": "2"
+  }
+}
+```
+
+With `tasks.max=3` and `start.tasks.fail.count=2`, tasks 0 and 1 go to `FAILED` on start while task 2
+starts normally and stays `RUNNING` - simulating a connector where only some of its tasks fail to
+come up.

@@ -35,15 +35,15 @@ public class TestTask extends SourceTask {
     public void start(Map<String, String> props) {
         config = new TestConnectorConfig(props);
 
-        long startDelayMs = config.startDelayMs();
+        long startDelayMs = config.startTasksDelayMs();
         if (startDelayMs > 0) {
             log.info("Simulating start delay of {}ms", startDelayMs);
             sleep(startDelayMs);
         }
 
-        if (config.startFail()) {
+        if (config.startTasksFail()) {
             log.info("Simulating start failure");
-            throw new ConnectException("simulated failure: task configured with " + TestConnectorConfig.START_FAIL_CONFIG + "=true");
+            throw new ConnectException("simulated failure: task configured with " + TestConnectorConfig.START_TASKS_FAIL_CONFIG + "=true");
         }
 
         long failAfterMs = config.failAfterMs();
