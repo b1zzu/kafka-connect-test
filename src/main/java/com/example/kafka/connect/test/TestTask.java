@@ -42,12 +42,11 @@ public class TestTask extends SourceTask {
         }
 
         if (config.startTasksFail()) {
-            log.info("Simulating start failure");
-            throw new ConnectException("simulated failure: task configured with " + TestConnectorConfig.START_TASKS_FAIL_CONFIG + "=true");
-        }
-
-        long failAfterMs = config.failAfterMs();
-        if (failAfterMs >= 0) {
+            long failAfterMs = config.failAfterMs();
+            if (failAfterMs < 0) {
+                log.info("Simulating start failure");
+                throw new ConnectException("simulated failure: task configured with " + TestConnectorConfig.START_TASKS_FAIL_CONFIG + "=true");
+            }
             log.info("Task will simulate an asynchronous failure in {}ms", failAfterMs);
             failAtMs = System.currentTimeMillis() + failAfterMs;
         }
@@ -60,8 +59,8 @@ public class TestTask extends SourceTask {
         if (failAtMs >= 0 && System.currentTimeMillis() >= failAtMs) {
             log.info("Simulating asynchronous task failure now");
             throw new ConnectException(
-                    "simulated failure: task configured with " + TestConnectorConfig.FAIL_AFTER_MS_CONFIG
-                            + "=" + config.failAfterMs());
+                    "simulated failure: task configured with " + TestConnectorConfig.START_TASKS_FAIL_CONFIG
+                            + "=true, " + TestConnectorConfig.FAIL_AFTER_MS_CONFIG + "=" + config.failAfterMs());
         }
 
         long pollDelayMs = config.pollDelayMs();

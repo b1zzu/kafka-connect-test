@@ -24,8 +24,9 @@ import java.util.Map;
  *   <li>Stopping / pausing takes time ({@code stop.delay.ms}) - and since Connect always calls
  *       stop() before start() on a restart, this is also what makes a restart look "stuck".
  *   <li>The connector itself fails to come up ({@code start.fail}), or accepts the config but its
- *       tasks fail to start ({@code start.tasks.fail}).
- *   <li>A task starts fine but fails on its own some time later ({@code fail.after.ms}).
+ *       tasks fail to start ({@code start.tasks.fail}); {@code fail.after.ms} only decides *when* a
+ *       failing task dies (at start, or asynchronously some time later) - it never fails a task on
+ *       its own.
  * </ul>
  *
  * Runs exactly {@code tasks.max} tasks, each simulating the same configured behaviour.
@@ -61,17 +62,16 @@ public class TestConnector extends SourceConnector {
 
     @Override
     public List<Map<String, String>> taskConfigs(int maxTasks) {
-        int failCount = new TestConnectorConfig(configProps).startTasksFailCount();
+        TestConnectorConfig config = new TestConnectorConfig(configProps);
+        boolean fail = config.startTasksFail();
+        int failCount = config.startTasksFailCount();
 
         List<Map<String, String>> configs = new ArrayList<>();
         for (int i = 0; i < maxTasks; i++) {
-            if (failCount < 0) {
-                configs.add(configProps);
-            } else {
-                Map<String, String> taskProps = new HashMap<>(configProps);
-                taskProps.put(TestConnectorConfig.START_TASKS_FAIL_CONFIG, String.valueOf(i < failCount));
-                configs.add(taskProps);
-            }
+            boolean taskFails = fail && (failCount < 0 || i < failCount);
+            Map<String, String> taskProps = new HashMap<>(configProps);
+            taskProps.put(TestConnectorConfig.START_TASKS_FAIL_CONFIG, String.valueOf(taskFails));
+            configs.add(taskProps);
         }
         return configs;
     }

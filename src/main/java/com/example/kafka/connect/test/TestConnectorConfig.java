@@ -39,24 +39,27 @@ public class TestConnectorConfig extends AbstractConfig {
 
     public static final String START_TASKS_FAIL_CONFIG = "start.tasks.fail";
     private static final String START_TASKS_FAIL_DOC =
-            "If true, each task's start() throws after start.tasks.delay.ms, simulating a connector "
-                    + "that accepts the config but whose tasks fail to start. Ignored when "
-                    + "start.tasks.fail.count is set (>= 0).";
+            "The only property that decides whether tasks fail. If true, tasks fail to start, "
+                    + "simulating a connector that accepts the config but whose tasks fail to come up. "
+                    + "start.tasks.fail.count and fail.after.ms are complementary - they only refine which "
+                    + "tasks fail and when - and have no effect when this is false.";
     public static final boolean START_TASKS_FAIL_DEFAULT = false;
 
     public static final String START_TASKS_FAIL_COUNT_CONFIG = "start.tasks.fail.count";
     private static final String START_TASKS_FAIL_COUNT_DOC =
-            "If >= 0, exactly this many of the tasks.max tasks (the first N, 0-indexed) fail at "
-                    + "start via start.tasks.fail, while the rest start normally - simulating a connector "
-                    + "where only some tasks fail to come up. Overrides start.tasks.fail when set. "
-                    + "Disabled (start.tasks.fail applies uniformly to all tasks) when negative.";
+            "Complementary to start.tasks.fail; has no effect when it is false. If >= 0, only this "
+                    + "many of the tasks.max tasks (the first N, 0-indexed) fail, while the rest start "
+                    + "normally - simulating a connector where only some tasks fail to come up. If < 0 "
+                    + "(default), all tasks fail.";
     public static final int START_TASKS_FAIL_COUNT_DEFAULT = -1;
 
     public static final String FAIL_AFTER_MS_CONFIG = "fail.after.ms";
     private static final String FAIL_AFTER_MS_DOC =
-            "If >= 0, the task starts successfully but fails itself this many milliseconds later "
-                    + "(via SourceTaskContext#raiseError), simulating a connector whose task starts running "
-                    + "and only fails asynchronously afterwards. Disabled when negative.";
+            "Complementary to start.tasks.fail; has no effect when it is false. If < 0 (default), a "
+                    + "failing task fails immediately in start(). If >= 0, a failing task starts "
+                    + "successfully and instead fails itself this many milliseconds later (checked in "
+                    + "poll(), since there is no out-of-band hook to fail a task), simulating a task that "
+                    + "starts running and only fails asynchronously afterwards.";
     public static final long FAIL_AFTER_MS_DEFAULT = -1L;
 
     public static final String STOP_DELAY_MS_CONFIG = "stop.delay.ms";

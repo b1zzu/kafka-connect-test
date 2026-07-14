@@ -29,9 +29,9 @@ real datastore or broker behaving flaky.
 | `start.delay.ms` | long | `0` | How long the **connector** blocks inside `start()` before returning. |
 | `start.fail` | boolean | `false` | If `true`, the **connector's** `start()` throws (after `start.delay.ms`), so the connector itself is reported `FAILED`. |
 | `start.tasks.delay.ms` | long | `0` | How long each **task** blocks inside `start()` before returning. |
-| `start.tasks.fail` | boolean | `false` | If `true`, each **task's** `start()` throws (after `start.tasks.delay.ms`), so the connector accepts the config but its tasks fail to come up. Ignored when `start.tasks.fail.count` is set. |
-| `start.tasks.fail.count` | int | `-1` | If `>= 0`, exactly this many of the `tasks.max` tasks (the first N) fail at start, while the rest run fine - overrides `start.tasks.fail`. Disabled when negative. |
-| `fail.after.ms` | long | `-1` | If `>= 0`, a task starts successfully but fails itself this many ms later. Disabled when negative. |
+| `start.tasks.fail` | boolean | `false` | The only property that decides whether tasks fail. If `true`, tasks fail to come up (so the connector accepts the config but its tasks fail). `start.tasks.fail.count` and `fail.after.ms` are complementary - they refine which tasks fail and when - and have no effect when this is `false`. |
+| `start.tasks.fail.count` | int | `-1` | Complementary to `start.tasks.fail`; no effect when it's `false`. If `>= 0`, only this many of the `tasks.max` tasks (the first N) fail, while the rest run fine. If negative (default), all tasks fail. |
+| `fail.after.ms` | long | `-1` | Complementary to `start.tasks.fail`; no effect when it's `false`. If negative (default), a failing task fails immediately in `start()`. If `>= 0`, it starts successfully and fails itself this many ms later instead. |
 | `stop.delay.ms` | long | `0` | How long each task blocks inside `stop()` before returning. |
 | `poll.delay.ms` | long | `1000` | How long each `poll()` call blocks before returning no records. Doesn't affect correctness, just loop friendliness. |
 
@@ -70,6 +70,7 @@ Connect image's plugin path.
     "tasks.max": "1",
     "start.tasks.delay.ms": "5000",
     "stop.delay.ms": "8000",
+    "start.tasks.fail": "true",
     "fail.after.ms": "30000"
   }
 }
@@ -78,8 +79,8 @@ Connect image's plugin path.
 - Restarting this connector takes >= 8s to actually stop the old task, then >= 5s to start the new
   one - an operator polling status right after issuing the restart should still see the old task
   winding down, not `RUNNING`.
-- 30s after each successful start, the task fails on its own, simulating a connector that looked
-  healthy right after start but degraded afterwards.
+- 30s after each successful start, the task fails (`start.tasks.fail=true` + `fail.after.ms=30000`),
+  simulating a connector that looked healthy right after start but degraded afterwards.
 
 ## Example: simulate a connector that fails to start
 
