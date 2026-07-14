@@ -32,7 +32,8 @@ real datastore or broker behaving flaky.
 | `stop.delay.ms` | long | `0` | How long the task blocks inside `stop()` before returning. |
 | `poll.delay.ms` | long | `1000` | How long each `poll()` call blocks before returning no records. Doesn't affect correctness, just loop friendliness. |
 
-The connector always runs exactly one task, regardless of `tasks.max`.
+The connector runs exactly `tasks.max` tasks, each with the same config (so each task delays/fails
+on the same schedule).
 
 ### Note on pause
 

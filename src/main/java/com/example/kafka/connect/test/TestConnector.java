@@ -22,7 +22,7 @@ import java.util.Map;
  *   <li>The task starts fine but fails on its own some time later ({@code fail.after.ms}).
  * </ul>
  *
- * Always runs a single task, regardless of {@code tasks.max}.
+ * Runs exactly {@code tasks.max} tasks, each simulating the same configured behaviour.
  */
 public class TestConnector extends SourceConnector {
 
@@ -42,9 +42,10 @@ public class TestConnector extends SourceConnector {
 
     @Override
     public List<Map<String, String>> taskConfigs(int maxTasks) {
-        // Always a single task: this connector isn't about parallelism, just lifecycle timing.
         List<Map<String, String>> configs = new ArrayList<>();
-        configs.add(configProps);
+        for (int i = 0; i < maxTasks; i++) {
+            configs.add(configProps);
+        }
         return configs;
     }
 
