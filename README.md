@@ -32,7 +32,8 @@ real datastore or broker behaving flaky.
 | `start.tasks.fail` | boolean | `false` | The only property that decides whether tasks fail. If `true`, tasks fail to come up (so the connector accepts the config but its tasks fail). `start.tasks.fail.count` and `fail.after.ms` are complementary - they refine which tasks fail and when - and have no effect when this is `false`. |
 | `start.tasks.fail.count` | int | `-1` | Complementary to `start.tasks.fail`; no effect when it's `false`. If `>= 0`, only this many of the `tasks.max` tasks (the first N) fail, while the rest run fine. If negative (default), all tasks fail. |
 | `fail.after.ms` | long | `-1` | Complementary to `start.tasks.fail`; no effect when it's `false`. If negative (default), a failing task fails immediately in `start()`. If `>= 0`, it starts successfully and fails itself this many ms later instead. |
-| `stop.delay.ms` | long | `0` | How long each task blocks inside `stop()` before returning. |
+| `stop.delay.ms` | long | `0` | How long the **connector** blocks inside `stop()` before returning. |
+| `stop.tasks.delay.ms` | long | `0` | How long each **task** blocks inside `stop()` before returning. |
 | `poll.delay.ms` | long | `1000` | How long each `poll()` call blocks before returning no records. Doesn't affect correctness, just loop friendliness. |
 
 The connector runs exactly `tasks.max` tasks, each with the same config (so each task delays/fails
@@ -41,9 +42,10 @@ on the same schedule).
 ### Note on pause
 
 Kafka Connect's `PAUSED` state is handled entirely by the framework (it just stops calling
-`poll()`); there is no task-level hook to delay it. `stop.delay.ms` therefore only applies to the
-`STOPPED` state (and to restarts, which are `stop()` followed by `start()`) - which is also the
-scenario most likely to trip up an operator that assumes stop is instantaneous.
+`poll()`); there is no task-level hook to delay it. `stop.delay.ms` / `stop.tasks.delay.ms`
+therefore only apply to the `STOPPED` state (and to restarts, which are `stop()` followed by
+`start()`) - which is also the scenario most likely to trip up an operator that assumes stop is
+instantaneous.
 
 ## Build
 
@@ -69,7 +71,7 @@ Connect image's plugin path.
     "connector.class": "com.example.kafka.connect.test.TestConnector",
     "tasks.max": "1",
     "start.tasks.delay.ms": "5000",
-    "stop.delay.ms": "8000",
+    "stop.tasks.delay.ms": "8000",
     "start.tasks.fail": "true",
     "fail.after.ms": "30000"
   }

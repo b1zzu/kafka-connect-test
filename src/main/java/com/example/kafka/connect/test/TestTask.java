@@ -73,7 +73,7 @@ public class TestTask extends SourceTask {
 
     @Override
     public void stop() {
-        long stopDelayMs = config != null ? config.stopDelayMs() : TestConnectorConfig.STOP_DELAY_MS_DEFAULT;
+        long stopDelayMs = config != null ? config.stopTasksDelayMs() : TestConnectorConfig.STOP_TASKS_DELAY_MS_DEFAULT;
         if (stopDelayMs > 0) {
             log.info("Simulating stop delay of {}ms", stopDelayMs);
             sleep(stopDelayMs);

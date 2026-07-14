@@ -21,8 +21,9 @@ import java.util.Map;
  * <ul>
  *   <li>Starting up takes time, either at the connector level ({@code start.delay.ms}) or the task
  *       level ({@code start.tasks.delay.ms}).
- *   <li>Stopping / pausing takes time ({@code stop.delay.ms}) - and since Connect always calls
- *       stop() before start() on a restart, this is also what makes a restart look "stuck".
+ *   <li>Stopping / pausing takes time, either at the connector level ({@code stop.delay.ms}) or the
+ *       task level ({@code stop.tasks.delay.ms}) - and since Connect always calls stop() before
+ *       start() on a restart, this is also what makes a restart look "stuck".
  *   <li>The connector itself fails to come up ({@code start.fail}), or accepts the config but its
  *       tasks fail to start ({@code start.tasks.fail}); {@code fail.after.ms} only decides *when* a
  *       failing task dies (at start, or asynchronously some time later) - it never fails a task on
@@ -78,7 +79,11 @@ public class TestConnector extends SourceConnector {
 
     @Override
     public void stop() {
-        // No resources held at the connector level, only the task simulates delays.
+        long stopDelayMs = configProps != null ? new TestConnectorConfig(configProps).stopDelayMs() : TestConnectorConfig.STOP_DELAY_MS_DEFAULT;
+        if (stopDelayMs > 0) {
+            log.info("Simulating connector stop delay of {}ms", stopDelayMs);
+            sleep(stopDelayMs);
+        }
     }
 
     @Override

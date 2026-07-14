@@ -64,11 +64,17 @@ public class TestConnectorConfig extends AbstractConfig {
 
     public static final String STOP_DELAY_MS_CONFIG = "stop.delay.ms";
     private static final String STOP_DELAY_MS_DOC =
-            "Milliseconds the task blocks inside stop() before returning, simulating a connector "
-                    + "that takes time to release its resources when paused, stopped, or restarted. "
-                    + "Because Connect always calls stop() before start() on a restart, this delay is "
-                    + "also what makes a restart look 'stuck' between the two.";
+            "Milliseconds the connector blocks inside stop() before returning, simulating a "
+                    + "connector that takes time to release its resources when paused, stopped, or "
+                    + "restarted. Because Connect always calls stop() before start() on a restart, this "
+                    + "delay is also what makes a restart look 'stuck' between the two.";
     public static final long STOP_DELAY_MS_DEFAULT = 0L;
+
+    public static final String STOP_TASKS_DELAY_MS_CONFIG = "stop.tasks.delay.ms";
+    private static final String STOP_TASKS_DELAY_MS_DOC =
+            "Milliseconds each task blocks inside stop() before returning, simulating a task that "
+                    + "takes time to release its resources when paused, stopped, or restarted.";
+    public static final long STOP_TASKS_DELAY_MS_DEFAULT = 0L;
 
     public static final String POLL_DELAY_MS_CONFIG = "poll.delay.ms";
     private static final String POLL_DELAY_MS_DOC =
@@ -84,6 +90,7 @@ public class TestConnectorConfig extends AbstractConfig {
             .define(START_TASKS_FAIL_COUNT_CONFIG, Type.INT, START_TASKS_FAIL_COUNT_DEFAULT, Importance.MEDIUM, START_TASKS_FAIL_COUNT_DOC)
             .define(FAIL_AFTER_MS_CONFIG, Type.LONG, FAIL_AFTER_MS_DEFAULT, Importance.MEDIUM, FAIL_AFTER_MS_DOC)
             .define(STOP_DELAY_MS_CONFIG, Type.LONG, STOP_DELAY_MS_DEFAULT, Importance.MEDIUM, STOP_DELAY_MS_DOC)
+            .define(STOP_TASKS_DELAY_MS_CONFIG, Type.LONG, STOP_TASKS_DELAY_MS_DEFAULT, Importance.MEDIUM, STOP_TASKS_DELAY_MS_DOC)
             .define(POLL_DELAY_MS_CONFIG, Type.LONG, POLL_DELAY_MS_DEFAULT, Importance.LOW, POLL_DELAY_MS_DOC);
 
     public TestConnectorConfig(Map<String, String> originals) {
@@ -116,6 +123,10 @@ public class TestConnectorConfig extends AbstractConfig {
 
     public long stopDelayMs() {
         return getLong(STOP_DELAY_MS_CONFIG);
+    }
+
+    public long stopTasksDelayMs() {
+        return getLong(STOP_TASKS_DELAY_MS_CONFIG);
     }
 
     public long pollDelayMs() {
