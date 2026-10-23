@@ -1,6 +1,5 @@
 package com.example.kafka.connect.test;
 
-import org.apache.kafka.common.utils.AppInfoParser;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -28,7 +27,7 @@ public class TestTask extends SourceTask {
 
     @Override
     public String version() {
-        return AppInfoParser.getVersion();
+        return TestConnector.VERSION;
     }
 
     @Override
